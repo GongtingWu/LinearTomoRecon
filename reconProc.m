@@ -1,0 +1,109 @@
+% Recon pre-processing
+
+%% Compute geometry parameter
+% Load recon parameter
+reconSettings;
+
+% Crop the image
+dxp=dxp-pixCrop(3)-pixCrop(4);
+dyp=dyp-pixCrop(1)-pixCrop(2);
+
+% detector length in x, y direction
+dxl=dxp*dxs;
+dyl=dyp*dys;
+
+% Height sampling of the recon space
+rz=rh/thk;
+
+%% Align source axis and the images
+% Correct for geometry misalignment
+% Find the tilted angle of the linear source
+sgeo=fit(X_new,Y_new,'poly1');
+sang=acotd(-sgeo.p1);
+
+% Correct for source_X and source_Y
+sx = -sgeo.p2/sgeo.p1*cosd(sang);
+sy = Y_new./cosd(sang);
+
+% Half projection mode
+if(exist('hproj','var'))
+    nseq(setdiff(1:15, hproj))=[];
+    sy(setdiff(1:15, hproj))=[];
+end
+
+%% MISC
+% Create image directory
+if(exist(otdir,'dir')==0)
+    mkdir(otdir);
+    if(isSynImg==1)
+        mkdir([otdir '\Synthetic']);
+    end
+end
+
+% Automatic determine the image file name
+dirInfo = dir([indir,'/*.dcm']);
+imgName = {dirInfo.name};
+
+% Compute the relaxation parameter lambda
+opt.lambda = comp_lambda(reconLambda,itn);
+
+
+%% Load images into the memory & pre-processing
+% Allocate space
+gnum = length(sy);
+A=zeros(dyp,dxp,gnum);
+
+for i=1:gnum
+    tmp=dicomread([indir imgName{i}]);
+    if(strcmp(geometryProfile, 'dental'))
+        tmp = tmp';
+    end
+    tmp=single(tmp)./ppf;       
+    tmp(tmp>rawUp)=1;
+    
+    % Correct the boundary
+    tmp(1:dt,:)=repmat(tmp(dt+1,:),dt,1);
+    tmp(end-db+1:end,:)=repmat(tmp(end-db,:),db,1);
+    tmp(:,1:dl)=repmat(tmp(:,dl+1),1,dl);
+    tmp(:,end-dr+1:end)=repmat(tmp(:,end-dr),1,dr);
+    
+    % Rotate, pad and crop the image
+    tmp1 = padarray(tmp,[50,50],'replicate');
+    tmp2=imrotate(tmp1,sang,'bicubic','crop');    
+    tmp3=tmp2(pixCrop(1)+51:end-pixCrop(2)-50,...
+        pixCrop(3)+51:end-pixCrop(4)-50);
+    
+    % Threshold the lower bound
+    tmp3(tmp3<rawLo)=rawLo;
+    
+    A(:,:,i)=log(tmp3)*(-1);
+end
+
+% Regroup all data into fan beam projection
+A=permute(A,[1,3,2]);
+B=zeros(dyp*gnum,dxp);
+for i=1:dxp
+    tmp=A(:,:,i);
+    B(:,i)=tmp(:);
+end
+
+% Release memory
+clear A tmp tmp1 tmp2 tmp3
+disp('Data is re-grouped into fan beam projection')
+
+%% Group all geometry info (calc system matrix)
+sysinfo.sh = sy; % Source y position (For each fan-beam 2D reconstruction)
+sysinfo.sx = sx; % Source x position
+sysinfo.sv = sid; % Source y position (vertical)
+sysinfo.hsamp = dyp; % Horzontal sampling
+sysinfo.vsamp = rz; % Vertical sampling
+sysinfo.odd = od;% Object to detector distance
+sysinfo.dpl = dyl;% Detector length
+sysinfo.dpw = dxl; % Detector width
+sysinfo.dp = dyp;% Number of pixels in detector
+sysinfo.sdp = dxp;% Number of pixels in detector
+sysinfo.rh = rh;% Actual height of the recon space
+
+% Set the geo parameter to sample back the recon image
+sxp=(sx+dxl/2)/dxs;
+geo=single([sid,rh,od,sxp]);
