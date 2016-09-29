@@ -1,0 +1,1 @@
+This is the MATLAB reconstruction codes to reconstruction dental image from Suni detector. \nThe geometry definition in this codes is matched with the geometry file for suni detector, it might not work correctly if other geometry files are used for other imaging settings
