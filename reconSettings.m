@@ -4,15 +4,15 @@
 %% I/O settings
 dirHome = 'D:\Personal Folder\Gongting Wu\';
 % Input directory
-indir=[dirHome '____#Data#____\2016\0927 Dental\Teeth Images\'];
+indir=[dirHome '____#Data#____\2016\0927 Dental\Mesh Images\'];
 % Output directory
-otdir=[dirHome '___#Result#___\2016\0927 Dental\Teeth Images-2\'];
+otdir=[dirHome '___#Result#___\2016\0927 Dental\Mesh Images\'];
 % Constant used to amplified output image from float to uint16
 otAmp=10000;
 
 %% Pre-processing settings
 % pre-precessing factor (2^16, 2^15, 2^14...)
-ppf=9400;%2^14; %32768;
+ppf=2^14; %32768;
 % Raw data thresholding
 rawUp = 0.98;
 rawLo = 0.0035;

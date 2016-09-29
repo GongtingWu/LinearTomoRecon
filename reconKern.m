@@ -1,4 +1,6 @@
 % Reconstruction loop
+% NOTE:
+% Not suggest changing this part
 
 % Enable parallel computing
 if isempty(gcp('nocreate'))
@@ -10,6 +12,7 @@ rb=zeros(rz,dyp,dxp,'single');
 nB=zeros(dyp*gnum,dxp, 'single');
 
 parfor i=1:dxp
+    
     % Compute the parameter required to find system matrix A
     theta = atan(abs((i-1/2)*dxs-sx-dxl/2)./sid);
     

@@ -1,4 +1,6 @@
 % Recon pre-processing
+% NOTE:
+% Not suggest changing this part
 
 %% Compute geometry parameter
 % Load recon parameter

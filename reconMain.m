@@ -4,6 +4,7 @@
 %
 % Author: Gongting Wu  |  Zhou Lab, UNC Chapel Hill
 
+% 
 
 % Clear all info
 clear,
@@ -15,7 +16,7 @@ reconProc;
 
 % Compute the system matrix A
 % A=fanbeam1(sysinfo,hpz0);
-[Ax,Ay,wt] = ddProjector1(sysinfo);
+[Ax,Ay,wt] = ddProjector(sysinfo);
 
 tic;
 % Reconstruction Loop
